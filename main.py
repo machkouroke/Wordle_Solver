@@ -1,6 +1,7 @@
 import enum
 import re
 import math
+import shelve
 from itertools import product
 
 
@@ -13,8 +14,11 @@ class Possibility(enum.Enum):
     J = 'Jaune'
 
 
+PATH: dict = {1: 'dico/short_french.txt', 2: 'dico/long_french.txt',
+              3: 'dico/english.txt'}
+
 # Total des combinaisons que peuvent donner Wordle 3**5 possibilités
-p = [x for x in product((Possibility.G, Possibility.V, Possibility.J), repeat=5)]
+p = list(product((Possibility.G, Possibility.V, Possibility.J), repeat=5))
 
 
 def word_test(word: str, dico_of_word: list) -> float:
@@ -115,24 +119,51 @@ def entropie(probability: list) -> float:
     return sum(i * j for i, j in zip(x, probability))
 
 
+def find_best_word(dico: list[str]):
+    """
+    Trouve le mot le plus probable dans le dictionnaire
+    :param dico: dictionnaire de mots
+    """
+    print('====Recherche du meilleur mot====')
+    return max(((x, word_test(x, wordle)) for x in dico), key=lambda x: x[1])[0]
+
+
+def menu() -> str:
+    print("====Bienvenue sur le LOPWorld Solver====")
+    print('Quel dictionnaire de mot vouliez vous utiliser')
+    print('1 - Dictionnaire francais court (22740 mots)')
+    print('2 - Dictionnaire francais long (208914 mots)')
+    print('3 - Dictionnaire anglais (84100 mots)')
+    return PATH[int(input("Veuillez saisir votre choix:"))]
+
+
 if __name__ == '__main__':
-    with open('dico/francais.txt') as dico:
-        wordle = [x.lower().replace('\n', '') for x in dico.readlines() if (re.match('^[a-z]{5}$', x))]
-    #best_word = max([(x, word_test(x, wordle)) for x in wordle], key=lambda x: x[1])[0]
-    best_word = "jeton"
-    #best_word = "visas"
-    print("Le meilleur mot est: ", best_word)
-    word_input = input("Quelle mot aviez vous saisi: ").lower()
-    while 1:
-        patternResult = input("Quelle est le model que vous aviez obtenue: (V:Vert, G:Gris, J:Jaune) ").upper()
-        if patternResult == "stop":
-            print("Merci d'avoir joué")
-            break
-        wordle = list(filtre(wordle, *pattern_to_regex(pattern_maker(word_input, pattern_interpreter(patternResult)))))
-        try:
-            best_word = max([(x, word_test(x, wordle)) for x in wordle], key=lambda x: x[1])[0]
-            print("Le meilleur mot est: ", best_word)
-            word_input = input("Quelle mot aviez vous saisi:").lower()
-        except ValueError:
-            print("Impossible de diviner le mot désolé")
-            break
+    with shelve.open('config') as config:
+        if 'dico' not in config:
+            config['dico'] = menu()
+        with open(str(config['dico'])) as dico:
+            wordle = [x.lower().replace('\n', '') for x in dico.readlines() if (re.match('^[a-z]{5}$', x))]
+        if 'best_word' not in config:
+            config['best_word'] = find_best_word(wordle)
+        best_word = config['best_word']
+        print("Le meilleur mot est: ", best_word)
+        word_input = input("Quel mot aviez-vous saisi: ").lower()
+        while 1:
+            patternResult = input("Quelle est le model que vous aviez obtenue: (V:Vert, G:Gris, J:Jaune) ").upper()
+            if patternResult == "stop":
+                print("Merci d'avoir joué")
+                break
+            if patternResult == "VVVVV":
+                print("Félicitions et merci d'avoir joué")
+                break
+
+            wordle = list(
+                filtre(wordle, *pattern_to_regex(pattern_maker(word_input, pattern_interpreter(patternResult)))))
+            try:
+                best_word = max(((x, word_test(x, wordle)) for x in wordle), key=lambda x: x[1])[0]
+
+                print("Le meilleur mot est: ", best_word)
+                word_input = input("Quel mot aviez-vous saisi:").lower()
+            except ValueError:
+                print("Impossible de diviner le mot désolé")
+                break
