@@ -5,6 +5,13 @@ main:
 - Date: 2022-07-03
 =#
 using Match
+using PyCall
+
+py"""
+from itertools import product
+def proba():
+	return list(product(('gris', 'vert', 'jaune'), repeat=5))
+"""
 @enum Possibility begin
     vert
     jaune
@@ -13,7 +20,7 @@ end
 PATH = Dict(1 => "dico/short_french.txt", 2 => "dico/long_french.txt", 3 => "dico/english.txt")
 
 # Total des combinaisons que peuvent donner Wordle 3**5 possibilités
-p = collect(Iterators.product([(gris::Possibility, vert::Possibility, jaune::Possibility) for i in 1:5]...))
+p = py"proba"()
 
 
 function word_test(word::String, dico_of_word::Array)::Number
@@ -23,11 +30,9 @@ function word_test(word::String, dico_of_word::Array)::Number
     :param dico_of_word: la liste contenant tous les mots
     :return: l'entropie du mot
     """
-# 	print(([length(filtre(dico_of_word, pattern_to_regex(pattern_maker(word, i))...))  for i in p]))
-	@show sum([length(filtre(dico_of_word, pattern_to_regex(pattern_maker("manger", i))...)) / length(dico_of_word)
-	for i in p])
+
     proba = [length(filtre(dico_of_word, pattern_to_regex(pattern_maker(word, i))...)) / length(dico_of_word)
-	for i in p]
+    for i in p]
     ent = entropie(proba)
     println("$word: $ent")
     return ent
@@ -63,7 +68,7 @@ function pattern_to_regex(word_pattern:: Array) :: Tuple
             push!(not_include,  i[1])
         elseif i[2] == '='
             pattern *= "[^$(i[1])]"
-            push!(bad_place,  i[2])
+            push!(bad_place,  i[1])
         end
     end
     return Regex(pattern), bad_place, not_include
@@ -122,7 +127,14 @@ function entropie(probability:: Array) :: Number
     x = [log(2, 1 / k) for k in probability if k != 0]
     return sum(i * j for (i, j) in zip(x, probability))
 end
-
+function find_best_word(dico::Array{String})
+    """
+    Trouve le mot le plus probable dans le dictionnaire
+    :param dico: dictionnaire de mots
+    """
+    println("====Recherche du meilleur mot===")
+    return argmax(x->x[2], [(x, word_test(x, wordle)) for x in dico])[1]
+end
 function menu() :: String
     println("====Bienvenue sur le LOPWorld Solver====")
     println("Quel dictionnaire de mot vouliez vous utiliser")
@@ -133,11 +145,37 @@ function menu() :: String
     return PATH[parse(Int64, readline())]
 end
 if abspath(PROGRAM_FILE) == @__FILE__
-#    u = pattern_to_regex(pattern_maker("mange", pattern_interpreter("GVVVG")))
    wordle = open("dico/short_french.txt") do dico
      [lowercase(replace(x, "\n" => "")) for x in eachline(dico) if !isnothing(match(r"^[a-z]{5}$", x))]
    end
-#    @show filtre(wordle, u...)
-   word_test("mange", wordle)
+    @time best_word = find_best_word(wordle)
+	println("Le meilleur mot est: ", "jeton")
+	print("Quel mot aviez-vous saisi: ")
+	word_input = lowercase(readline())
+	while true
+		global wordle
+		global word_input
+		print("Quelle est le model que vous aviez obtenue: (V:Vert, G:Gris, J:Jaune) ")
+		patternResult = uppercase(readline())
+		if patternResult == "STOP"
+			println("Merci d'avoir joué")
+			break
+		end
+		if patternResult == "VVVVV"
+			print("Félicitions et merci d'avoir joué")
+			break
+		end
 
+		wordle = filtre(wordle, pattern_to_regex(pattern_maker(word_input, pattern_interpreter(patternResult)))...)
+		try
+			best_word = argmax(x->x[2], [(x, word_test(x, wordle)) for x in wordle])[1]
+
+			println("Le meilleur mot est: ", best_word)
+			print("Quel mot aviez-vous saisi:")
+			word_input = lowercase(readline())
+		catch e
+			print("Impossible de diviner le mot désolé: ", e)
+			break
+		end
+	end
 end

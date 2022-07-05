@@ -28,7 +28,6 @@ def word_test(word: str, dico_of_word: list) -> float:
     :param dico_of_word: la liste contenant tous les mots
     :return: l'entropie du mot
     """
-    global p
     proba = [len(filtre(dico_of_word, *pattern_to_regex(pattern_maker(word, i)))) / len(dico_of_word) for i in p]
     ent = entropie(proba)
     print(f"{word}: ", ent)
