@@ -1,9 +1,7 @@
 Wordle_Solver
 ============
 Programme python permettant de résoudre le jeu Wordle en 3 coup en moyenne
-
-![tempFileForShare_20220703-144805](https://user-images.githubusercontent.com/40785379/177042717-9dc861f5-2d49-4ba7-b0b1-fe73d2fcdc96.jpg)
-
+![image](https://user-images.githubusercontent.com/40785379/177575641-7b45a827-011a-4ad4-8f53-df4c2a8bdf37.png)
 <a href="https://buymeacoffee.com/machkouroke" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: auto !important;width: auto !important;" ></a>
 
 
