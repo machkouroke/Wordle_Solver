@@ -148,7 +148,7 @@ if __name__ == '__main__':
         print("Le meilleur mot est: ", best_word)
         word_input = input("Quel mot aviez-vous saisi: ").lower()
         while 1:
-            patternResult = input("Quelle est le model que vous aviez obtenue: (V:Vert, G:Gris, J:Jaune) ").upper()
+            patternResult = input("Quelle est le model que vous aviez obtenue: (V:🟩, G:⬛, J:🟨) ").upper()
             if patternResult == "stop":
                 print("Merci d'avoir joué")
                 break
