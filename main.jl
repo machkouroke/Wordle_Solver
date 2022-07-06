@@ -5,13 +5,9 @@ main:
 - Date: 2022-07-03
 =#
 using Match
-using PyCall
+using Base.Iterators
+using BenchmarkTools
 
-py"""
-from itertools import product
-def proba():
-	return list(product(('gris', 'vert', 'jaune'), repeat=5))
-"""
 @enum Possibility begin
     vert
     jaune
@@ -20,7 +16,7 @@ end
 PATH = Dict(1 => "dico/short_french.txt", 2 => "dico/long_french.txt", 3 => "dico/english.txt")
 
 # Total des combinaisons que peuvent donner Wordle 3**5 possibilités
-p = py"proba"()
+p = product(repeated(("gris", "vert", "jaune"), 5)...) |> Ref |> flatten |> collect
 
 
 function word_test(word::String, dico_of_word::Array)::Number
@@ -148,34 +144,34 @@ if abspath(PROGRAM_FILE) == @__FILE__
    wordle = open("dico/short_french.txt") do dico
      [lowercase(replace(x, "\n" => "")) for x in eachline(dico) if !isnothing(match(r"^[a-z]{5}$", x))]
    end
-    @time best_word = find_best_word(wordle)
-	println("Le meilleur mot est: ", "jeton")
-	print("Quel mot aviez-vous saisi: ")
-	word_input = lowercase(readline())
-	while true
-		global wordle
-		global word_input
-		print("Quelle est le model que vous aviez obtenue: (V:Vert, G:Gris, J:Jaune) ")
-		patternResult = uppercase(readline())
-		if patternResult == "STOP"
-			println("Merci d'avoir joué")
-			break
-		end
-		if patternResult == "VVVVV"
-			print("Félicitions et merci d'avoir joué")
-			break
-		end
+    @btime best_word = "jeton"
+    println("Le meilleur mot est: ", "jeton")
+    print("Quel mot aviez-vous saisi: ")
+    word_input = lowercase(readline())
+    while true
+        global wordle
+        global word_input
+        print("Quelle est le model que vous aviez obtenue: (V:🟩, G:⬛, J:🟨) ")
+        patternResult = uppercase(readline())
+        if patternResult == "STOP"
+            println("Merci d'avoir joué")
+            break
+        end
+        if patternResult == "VVVVV"
+            print("Félicitions et merci d'avoir joué")
+            break
+        end
 
-		wordle = filtre(wordle, pattern_to_regex(pattern_maker(word_input, pattern_interpreter(patternResult)))...)
-		try
-			best_word = argmax(x->x[2], [(x, word_test(x, wordle)) for x in wordle])[1]
+        wordle = filtre(wordle, pattern_to_regex(pattern_maker(word_input, pattern_interpreter(patternResult)))...)
+        try
+            best_word = argmax(x->x[2], [(x, word_test(x, wordle)) for x in wordle])[1]
 
-			println("Le meilleur mot est: ", best_word)
-			print("Quel mot aviez-vous saisi:")
-			word_input = lowercase(readline())
-		catch e
-			print("Impossible de diviner le mot désolé: ", e)
-			break
-		end
-	end
+            println("Le meilleur mot est: ", best_word)
+            print("Quel mot aviez-vous saisi:")
+            word_input = lowercase(readline())
+        catch e
+            print("Impossible de diviner le mot désolé: ", e)
+            break
+        end
+    end
 end
