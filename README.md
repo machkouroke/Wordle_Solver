@@ -52,7 +52,7 @@ Quelle est le model que vous aviez obtenue: (V:Vert, G:Gris, J:Jaune) vvvvv
 ## <span id="add_dico"> Ajouter votre propre dictionnaire <span>
 
 Si le dictionnaire par défaut ne vous convient pas ou tout simplement ne comprends pas votre langue vous pouviez l'ajouter en suivant les étapes suivantes
-- Copier le fichier contenat votre dictionnaire dans le dossier dico
+- Copier le fichier contenant votre dictionnaire dans le dossier dico
 - Ajouter son chemin dans le dictionnaire du code main en respectant les numéros
 - Vous pouviez personnaliser le menu (Fonction menu) pour voir votre dictionnaire apparaitre dans le menu
 - N'hésitez pas à partager votre dictionnaire avec nous en soumettant votre pull
